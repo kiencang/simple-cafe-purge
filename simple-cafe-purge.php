@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache (cho Cloudflare) siêu nhẹ. Tự động xóa khi cập nhật nội dung và hỗ trợ nút "Purge Everything".
- * Version: 1.7
+ * Version: 1.8
  * Author: WPSila Optimizer
  * Author URI: https://wpsila.com
  */
@@ -27,17 +27,14 @@ function wpsila_scfp_add_admin_menu() {
 }
 
 function wpsila_scfp_options_page() {
-    // --- XỬ LÝ LƯU CẤU HÌNH (Đã thêm Validate) ---
+    // --- XỬ LÝ LƯU CẤU HÌNH ---
     if (isset($_POST['wpsila_scfp_save_settings']) && check_admin_referer('wpsila_scfp_save_settings_verify')) {
-        
         $input_zone_id = sanitize_text_field($_POST['wpsila_scfp_zone_id']);
         $input_api_token = sanitize_text_field($_POST['wpsila_scfp_api_token']);
 
-        // 1. Kiểm tra rỗng (Validation)
         if (empty($input_zone_id) || empty($input_api_token)) {
             echo '<div class="notice notice-error is-dismissible"><p>❌ <strong>Lỗi:</strong> Zone ID và API Token không được để trống!</p></div>';
         } else {
-            // 2. Nếu có dữ liệu mới cho phép lưu
             update_option('wpsila_scfp_zone_id', $input_zone_id);
             update_option('wpsila_scfp_api_token', $input_api_token);
             echo '<div class="notice notice-success is-dismissible"><p>✅ Đã lưu cấu hình thành công!</p></div>';
@@ -71,14 +68,12 @@ function wpsila_scfp_options_page() {
         
         <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); max-width: 800px;">
             <h2>🛠️ Cấu hình API</h2>
-            <!-- Thêm novalidate để test PHP validation nếu muốn, nhưng mặc định để HTML5 check -->
             <form method="post" action="">
                 <?php wp_nonce_field('wpsila_scfp_save_settings_verify'); ?>
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row">Zone ID <span style="color:red">*</span></th>
                         <td>
-                            <!-- Thêm required -->
                             <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); ?>" class="regular-text" style="width: 100%;" placeholder="Ví dụ: a1b2c3d4..." required />
                             <p class="description">Tìm thấy ở trang Overview tên miền (cột bên phải).</p>
                         </td>
@@ -86,7 +81,6 @@ function wpsila_scfp_options_page() {
                     <tr valign="top">
                         <th scope="row">API Token <span style="color:red">*</span></th>
                         <td>
-                            <!-- Thêm required -->
                             <input type="password" name="wpsila_scfp_api_token" value="<?php echo esc_attr($api_token); ?>" class="regular-text" style="width: 100%;" required />
                             <p class="description">Yêu cầu quyền: <strong>Zone > Cache Purge > Purge</strong>.</p>
                         </td>
@@ -114,13 +108,13 @@ function wpsila_scfp_options_page() {
 add_action('transition_post_status', 'wpsila_scfp_handle_post_transition', 10, 3);
 
 function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
+    // 1. Chặn các trường hợp không cần thiết
     if (wp_is_post_revision($post->ID) || wp_is_post_autosave($post->ID)) return;
     if ($new_status !== 'publish' && $old_status !== 'publish') return;
 
     $zone_id = get_option('wpsila_scfp_zone_id');
     $api_token = get_option('wpsila_scfp_api_token');
     
-    // Kiểm tra chặt chẽ: Nếu thiếu cấu hình thì dừng ngay
     if (empty($zone_id) || empty($api_token)) return;
 
     $urls_to_purge = [];
@@ -130,6 +124,8 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     if ($post->post_type === 'post') {
         $urls_to_purge[] = home_url('/');
         $urls_to_purge[] = home_url(); 
+        
+        // --- XỬ LÝ CATEGORY ---
         $categories = get_the_category($post->ID);
         if ($categories) {
             foreach ($categories as $category) {
@@ -137,8 +133,18 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
                 if ($link && !is_wp_error($link)) $urls_to_purge[] = $link;
             }
         }
+
+        // --- XỬ LÝ TAGS (Mới bổ sung v1.8) ---
+        $tags = get_the_tags($post->ID);
+        if ($tags) {
+            foreach ($tags as $tag) {
+                $link = get_tag_link($tag->term_id);
+                if ($link && !is_wp_error($link)) $urls_to_purge[] = $link;
+            }
+        }
     }
     
+    // Loại bỏ URL trùng lặp và sắp xếp lại index mảng
     $urls_to_purge = array_unique($urls_to_purge);
 
     if (!empty($urls_to_purge)) {
