@@ -160,8 +160,9 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     $urls_to_purge = array_values($urls_to_purge);
 
     // [BỔ SUNG] Giới hạn 100 URL để tránh lỗi API 413 của Cloudflare
-    if (count($urls_to_purge) > 90) {
-        $urls_to_purge = array_slice($urls_to_purge, 0, 90);
+	// Nhưng cũng chỉ cần lấy 50 đã là rất nhiều
+    if (count($urls_to_purge) > 50) {
+        $urls_to_purge = array_slice($urls_to_purge, 0, 50);
     }
 
     if (!empty($urls_to_purge)) {
