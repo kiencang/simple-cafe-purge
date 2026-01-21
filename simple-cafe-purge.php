@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache (cho Cloudflare) siêu nhẹ. Tự động xóa khi cập nhật nội dung và hỗ trợ nút "Purge Everything".
- * Version: 1.8
+ * Version: 1.9
  * Author: WPSila Optimizer
  * Author URI: https://wpsila.com
  */
@@ -118,14 +118,22 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     if (empty($zone_id) || empty($api_token)) return;
 
     $urls_to_purge = [];
+    
+    // --- ƯU TIÊN 1: URL BÀI VIẾT (Quan trọng nhất) ---
+    // Luôn add đầu tiên để đảm bảo không bao giờ bị cắt
     $permalink = get_permalink($post->ID);
     if ($permalink) $urls_to_purge[] = $permalink;
 
     if ($post->post_type === 'post') {
+        // --- ƯU TIÊN 2: TRANG CHỦ ---
         $urls_to_purge[] = home_url('/');
         $urls_to_purge[] = home_url(); 
         
-        // --- XỬ LÝ CATEGORY ---
+        // --- ƯU TIÊN 3: FEED (RSS) ---
+        // Nên thêm cái này vì Google News hay quét feed
+        $urls_to_purge[] = get_bloginfo('rss2_url');
+        
+        // --- ƯU TIÊN 4: CATEGORY ---
         $categories = get_the_category($post->ID);
         if ($categories) {
             foreach ($categories as $category) {
@@ -134,7 +142,7 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
             }
         }
 
-        // --- XỬ LÝ TAGS (Mới bổ sung v1.8) ---
+        // --- ƯU TIÊN 5: TAGS (Ít quan trọng nhất - Sẽ bị cắt đầu tiên nếu quá nhiều) ---
         $tags = get_the_tags($post->ID);
         if ($tags) {
             foreach ($tags as $tag) {
@@ -144,8 +152,17 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
         }
     }
     
-    // Loại bỏ URL trùng lặp và sắp xếp lại index mảng
+    // Loại bỏ URL trùng lặp
     $urls_to_purge = array_unique($urls_to_purge);
+    
+    // [QUAN TRỌNG] Reset lại key của mảng để hàm slice chạy đúng index 0,1,2...
+    // array_values rất quan trọng sau khi dùng array_unique
+    $urls_to_purge = array_values($urls_to_purge);
+
+    // [BỔ SUNG] Giới hạn 30 URL để tránh lỗi API 413 của Cloudflare
+    if (count($urls_to_purge) > 30) {
+        $urls_to_purge = array_slice($urls_to_purge, 0, 30);
+    }
 
     if (!empty($urls_to_purge)) {
         wpsila_scfp_send_purge_request($zone_id, $api_token, $urls_to_purge);
