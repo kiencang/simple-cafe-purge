@@ -159,9 +159,9 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     // array_values rất quan trọng sau khi dùng array_unique
     $urls_to_purge = array_values($urls_to_purge);
 
-    // [BỔ SUNG] Giới hạn 30 URL để tránh lỗi API 413 của Cloudflare
-    if (count($urls_to_purge) > 30) {
-        $urls_to_purge = array_slice($urls_to_purge, 0, 30);
+    // [BỔ SUNG] Giới hạn 100 URL để tránh lỗi API 413 của Cloudflare
+    if (count($urls_to_purge) > 90) {
+        $urls_to_purge = array_slice($urls_to_purge, 0, 90);
     }
 
     if (!empty($urls_to_purge)) {
