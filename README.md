@@ -2,7 +2,10 @@
 
 **Simple Cafe Purge** là một plugin WordPress siêu nhẹ (lightweight), được thiết kế để giải quyết vấn đề đồng bộ bộ nhớ đệm (cache) giữa website và Cloudflare. Plugin này đặc biệt tối ưu cho các hệ thống Blog và Trang tin tức, nơi nội dung cần được cập nhật tới người đọc ngay khi vừa xuất bản.
 
-Đây là công cụ hỗ trợ hoàn hảo cho công cụ tối ưu cache và bảo mật [rtd-cafe](https://rtd-cafe.wpsila.com/).
+Đây là công cụ hỗ trợ hoàn hảo cho công cụ tối ưu cache và bảo mật [rtd-cafe](https://rtd-cafe.wpsila.com/). Với plugin này bạn sẽ có 2 cải tiến quan trọng cho rtd-cafe:
+
+- Bạn có thể để cache HTML mặc định từ 8 tiếng lên 7 ngày hoặc thậm chí lên đến 30 ngày trên Cloudflare.
+- Các bài viết mà bạn thêm sửa xóa sẽ được cập nhật hiển thị ngay lập tức cho người dùng cuối thay vì mặc định phải đợi 8 tiếng để hết thời gian cache.
 
 ---
 
