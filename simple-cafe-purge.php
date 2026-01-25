@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache (cho Cloudflare) siêu nhẹ. Tự động xóa khi cập nhật nội dung và hỗ trợ nút "Purge Everything"
- * Version: 1.12.1
+ * Version: 1.12.2
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://wpsila.com
  */
@@ -66,15 +66,89 @@ function wpsila_scfp_options_page() {
         }
     }
 
-    $zone_id = get_option('wpsila_scfp_zone_id', ''); // Lấy thông tin để hiển thị ra màn hình, nếu chưa có thì gán rỗng
+    $zone_id = get_option('wpsila_scfp_zone_id', '');
     $api_token = get_option('wpsila_scfp_api_token', '');
-	?>
+    ?>
+    
+    <style>
+        /* Card chứa nội dung: Mô phỏng box của WordPress */
+        .wpsila-card {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ccd0d4;
+            box-shadow: 0 1px 1px rgba(0,0,0,.04);
+            max-width: 800px;
+            margin-bottom: 20px; /* Tạo khoảng cách giữa các box */
+        }
+
+        /* Box xóa cache có viền đỏ bên trái */
+        .wpsila-card.is-danger {
+            border-left: 4px solid #d63638;
+        }
+
+        /* Input full width */
+        .wpsila-full-width {
+            width: 100%;
+        }
+
+        /* Wrapper cho ô nhập mật khẩu để định vị icon con mắt */
+        .wpsila-pwd-wrapper {
+            position: relative; 
+            max-width: 100%;
+        }
+
+        /* Input mật khẩu cần padding bên phải để không đè lên icon */
+        .wpsila-pwd-input {
+            width: 100%; 
+            padding-right: 40px;
+        }
+
+        /* Icon con mắt */
+        .wpsila-eye-icon {
+            position: absolute; 
+            right: 10px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            cursor: pointer; 
+            color: #50575e;
+        }
+
+        /* Nút Xóa cache đặc biệt */
+        .wpsila-btn-purge {
+            font-weight: bold !important; 
+            border: 1px solid #d63638 !important; 
+            padding: 5px 15px !important; 
+            background: #fbeaea !important;
+            color: #d63638 !important;
+            transition: all 0.2s;
+        }
+        .wpsila-btn-purge:hover {
+            background: #d63638 !important;
+            color: #fff !important;
+        }
+
+        /* Dòng mẹo nhỏ */
+        .wpsila-hint {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #646970;
+            font-style: italic;
+            line-height: 1.5;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
+        }
+		
+		.wpsila-hint strong {
+			color: #d63638; /* Làm nổi bật chữ Mẹo bằng màu đỏ nhạt */
+		}
+    </style>
+
     <div class="wrap">
         <h1>☕ Simple Cafe Purge</h1>
         <p>Plugin siêu nhẹ giúp đồng bộ cache giữa WordPress và hệ thống của Cloudflare.</p>
         <hr>
         
-        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); max-width: 800px;">
+        <div class="wpsila-card">
             <h2>🛠️ Cấu hình API</h2>
             <form method="post" action="">
                 <?php wp_nonce_field('wpsila_scfp_save_settings_verify'); ?>
@@ -82,79 +156,59 @@ function wpsila_scfp_options_page() {
                     <tr valign="top">
                         <th scope="row">Zone ID <span style="color:red">*</span></th>
                         <td>
-                            <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); ?>" class="regular-text" style="width: 100%;" placeholder="Ví dụ: a1b2c3d4..." required />
+                            <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); ?>" class="regular-text wpsila-full-width" placeholder="Ví dụ: a1b2c3d4..." required />
                             <p class="description">Tìm thấy ở trang Overview tên miền (cột bên phải).</p>
                         </td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">API Token <span style="color:red">*</span></th>
-							<td>
-								<!-- Bọc trong div relative để căn chỉnh icon -->
-								<div style="position: relative; max-width: 100%;">
-									<!-- Thêm ID="wpsila_scfp_api_token" để JS tìm thấy -->
-									<!-- Thêm padding-right: 40px để chữ không bị icon che mất -->
-									<input type="password" id="wpsila_scfp_api_token" name="wpsila_scfp_api_token" value="<?php echo esc_attr($api_token); ?>" class="regular-text" style="width: 100%; padding-right: 40px;" required autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" />
-									
-									<!-- Icon con mắt (Dashicons có sẵn của WordPress) -->
-									<span id="wpsila_toggle_token" class="dashicons dashicons-visibility" title="Hiện/Ẩn Token" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #50575e;"></span>
-								</div>
-
-								<p class="description">Yêu cầu quyền: <strong>Zone > Cache Purge > Purge</strong> (hãy chắc chắn bạn chỉ định đúng tên miền).</p>
-							</td>
+                        <td>
+                            <div class="wpsila-pwd-wrapper">
+                                <input type="password" id="wpsila_scfp_api_token" name="wpsila_scfp_api_token" value="<?php echo esc_attr($api_token); ?>" class="regular-text wpsila-pwd-input" required autocomplete="new-password" />
+                                <span id="wpsila_toggle_token" class="dashicons dashicons-visibility wpsila-eye-icon" title="Hiện/Ẩn Token"></span>
+                            </div>
+                            <p class="description">Yêu cầu quyền: <strong>Zone > Cache Purge > Purge</strong> (hãy chắc chắn bạn chỉ định đúng tên miền).</p>
+                        </td>
                     </tr>
                 </table>
                 <p class="submit"><input type="submit" name="wpsila_scfp_save_settings" class="button button-primary" value="Lưu cấu hình" /></p>
             </form>
         </div>
-        <br>
-        <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); max-width: 800px; border-left: 4px solid #d63638;">
+
+        <div class="wpsila-card is-danger">
             <h2>🔥 Xóa toàn bộ Cache</h2>
             <form method="post" action="" onsubmit="return confirm('Bạn có chắc chắn muốn xóa TOÀN BỘ cache không?');">
                 <?php wp_nonce_field('wpsila_scfp_purge_all_verify'); ?>
-                <input type="submit" name="wpsila_scfp_purge_everything" class="button button-link-delete" value="Xóa Sạch Cache Ngay Lập Tức" style="font-weight: bold; border: 1px solid #d63638; padding: 5px 15px; background: #fbeaea;" />
+                
+                <input type="submit" name="wpsila_scfp_purge_everything" class="button wpsila-btn-purge" value="Xóa Sạch Cache Ngay Lập Tức" />
             </form>
-			
-			<p class="wpsila-hint">
-				💡 <strong>Mẹo:</strong> Bạn có thể nhấn nút này để kiểm tra cấu hình API đã chính xác chưa. Nếu thành công nghĩa là mọi thứ đã thông suốt!
-			</p>
+            
+            <p class="wpsila-hint">
+                💡 <strong>Mẹo:</strong> Bạn có thể nhấn nút này để kiểm tra cấu hình API đã chính xác chưa. Nếu thành công nghĩa là mọi thứ đã thông suốt!
+            </p>
         </div>
     </div>
-	    <script>
-		document.addEventListener('DOMContentLoaded', function() {
-			var toggleBtn = document.getElementById('wpsila_toggle_token');
-			var inputField = document.getElementById('wpsila_scfp_api_token');
-			
-			if (toggleBtn && inputField) {
-				toggleBtn.addEventListener('click', function() {
-					if (inputField.type === 'password') {
-						// Chuyển sang hiện chữ
-						inputField.type = 'text';
-						toggleBtn.classList.remove('dashicons-visibility');
-						toggleBtn.classList.add('dashicons-hidden');
-					} else {
-						// Chuyển sang ẩn (dấu sao)
-						inputField.type = 'password';
-						toggleBtn.classList.remove('dashicons-hidden');
-						toggleBtn.classList.add('dashicons-visibility');
-					}
-				});
-			}
-		});
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toggleBtn = document.getElementById('wpsila_toggle_token');
+            var inputField = document.getElementById('wpsila_scfp_api_token');
+            
+            if (toggleBtn && inputField) {
+                toggleBtn.addEventListener('click', function() {
+                    if (inputField.type === 'password') {
+                        inputField.type = 'text';
+                        toggleBtn.classList.remove('dashicons-visibility');
+                        toggleBtn.classList.add('dashicons-hidden');
+                    } else {
+                        inputField.type = 'password';
+                        toggleBtn.classList.remove('dashicons-hidden');
+                        toggleBtn.classList.add('dashicons-visibility');
+                    }
+                });
+            }
+        });
     </script>
-	<style>
-		.wpsila-hint {
-			margin-top: 15px;
-			font-size: 13px;
-			color: #646970; /* Màu xám đặc trưng của WordPress */
-			font-style: italic;
-			line-height: 1.5;
-			border-top: 1px dashed #ddd; /* Tạo một đường gạch nhẹ để phân tách */
-			padding-top: 10px;
-		}
-		.wpsila-hint strong {
-			color: #d63638; /* Làm nổi bật chữ Mẹo bằng màu đỏ nhạt */
-		}
-	</style>
     <?php
 }
 
