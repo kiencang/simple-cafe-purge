@@ -88,10 +88,19 @@ function wpsila_scfp_options_page() {
                     </tr>
                     <tr valign="top">
                         <th scope="row">API Token <span style="color:red">*</span></th>
-                        <td>
-                            <input type="password" name="wpsila_scfp_api_token" value="<?php echo esc_attr($api_token); ?>" class="regular-text" style="width: 100%;" required />
-                            <p class="description">Yêu cầu quyền: <strong>Zone > Cache Purge > Purge</strong> (hãy chắc chắn bạn chỉ định đúng tên miền).</p>
-                        </td>
+							<td>
+								<!-- Bọc trong div relative để căn chỉnh icon -->
+								<div style="position: relative; max-width: 100%;">
+									<!-- Thêm ID="wpsila_scfp_api_token" để JS tìm thấy -->
+									<!-- Thêm padding-right: 40px để chữ không bị icon che mất -->
+									<input type="password" id="wpsila_scfp_api_token" name="wpsila_scfp_api_token" value="<?php echo esc_attr($api_token); ?>" class="regular-text" style="width: 100%; padding-right: 40px;" required autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" />
+									
+									<!-- Icon con mắt (Dashicons có sẵn của WordPress) -->
+									<span id="wpsila_toggle_token" class="dashicons dashicons-visibility" title="Hiện/Ẩn Token" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #50575e;"></span>
+								</div>
+
+								<p class="description">Yêu cầu quyền: <strong>Zone > Cache Purge > Purge</strong> (hãy chắc chắn bạn chỉ định đúng tên miền).</p>
+							</td>
                     </tr>
                 </table>
                 <p class="submit"><input type="submit" name="wpsila_scfp_save_settings" class="button button-primary" value="Lưu cấu hình" /></p>
@@ -106,6 +115,28 @@ function wpsila_scfp_options_page() {
             </form>
         </div>
     </div>
+	    <script>
+		document.addEventListener('DOMContentLoaded', function() {
+			var toggleBtn = document.getElementById('wpsila_toggle_token');
+			var inputField = document.getElementById('wpsila_scfp_api_token');
+			
+			if (toggleBtn && inputField) {
+				toggleBtn.addEventListener('click', function() {
+					if (inputField.type === 'password') {
+						// Chuyển sang hiện chữ
+						inputField.type = 'text';
+						toggleBtn.classList.remove('dashicons-visibility');
+						toggleBtn.classList.add('dashicons-hidden');
+					} else {
+						// Chuyển sang ẩn (dấu sao)
+						inputField.type = 'password';
+						toggleBtn.classList.remove('dashicons-hidden');
+						toggleBtn.classList.add('dashicons-visibility');
+					}
+				});
+			}
+		});
+    </script>
     <?php
 }
 
