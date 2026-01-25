@@ -41,7 +41,7 @@
 
 ## ⚠️ Lưu ý sử dụng
 
-* **Đối tượng:** Plugin được thiết kế tối ưu nhất cho `post_type = 'post'`. 
+* **Đối tượng:** Plugin được thiết kế tối ưu nhất cho `post_type = 'post'` (tức là các dạng bài của blog, trang tin tức WordPress). 
 * **Giới hạn:** Mỗi lần cập nhật, plugin sẽ tự động lọc ra tối đa **50 URL** quan trọng nhất để gửi lên Cloudflare nhằm tránh quá tải và đảm bảo tốc độ phản hồi nhanh nhất.
 * **Gỡ cài đặt:** Khi bạn xóa plugin, toàn bộ cấu hình API sẽ được tự động dọn dẹp khỏi cơ sở dữ liệu để giữ website luôn sạch sẽ.
 
@@ -49,10 +49,10 @@
 
 ## 📄 Thông tin dự án
 
-* **Tác giả:** Nguyễn Đức Anh (WPSila)
+* **Tác giả:** Nguyễn Đức Anh (wpsila)
 * **Website:** [wpsila.com](https://wpsila.com)
 * **Phiên bản:** 1.12
 * **Giấy phép:** GPLv2.
 
 ---
-*Cảm ơn bạn đã sử dụng giải pháp từ WPSila! Nếu thấy hữu ích, hãy giới thiệu cho bạn bè cùng sử dụng.*
+*Cảm ơn bạn đã sử dụng giải pháp từ wpsila! Nếu thấy hữu ích, hãy giới thiệu cho bạn bè cùng sử dụng.*
