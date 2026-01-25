@@ -2,9 +2,8 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache (cho Cloudflare) siêu nhẹ. Tự động xóa khi cập nhật nội dung và hỗ trợ nút "Purge Everything"
- * Kiểu website cho phép: Blog hoặc trang tin tức WordPress
- * Version: 1.12
- * Author: WPSila - Nguyễn Đức Anh
+ * Version: 1.12.1
+ * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://wpsila.com
  */
 
@@ -16,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 1. GIAO DIỆN ADMIN & XỬ LÝ FORM
 // =========================================================================
 
+// Gắn vào menu ở trang Admin
 add_action('admin_menu', 'wpsila_scfp_add_admin_menu');
 function wpsila_scfp_add_admin_menu() {
     add_options_page(
@@ -113,6 +113,10 @@ function wpsila_scfp_options_page() {
                 <?php wp_nonce_field('wpsila_scfp_purge_all_verify'); ?>
                 <input type="submit" name="wpsila_scfp_purge_everything" class="button button-link-delete" value="Xóa Sạch Cache Ngay Lập Tức" style="font-weight: bold; border: 1px solid #d63638; padding: 5px 15px; background: #fbeaea;" />
             </form>
+			
+			<p class="wpsila-hint">
+				💡 <strong>Mẹo:</strong> Bạn có thể nhấn nút này để kiểm tra cấu hình API đã chính xác chưa. Nếu thành công nghĩa là mọi thứ đã thông suốt!
+			</p>
         </div>
     </div>
 	    <script>
@@ -137,6 +141,20 @@ function wpsila_scfp_options_page() {
 			}
 		});
     </script>
+	<style>
+		.wpsila-hint {
+			margin-top: 15px;
+			font-size: 13px;
+			color: #646970; /* Màu xám đặc trưng của WordPress */
+			font-style: italic;
+			line-height: 1.5;
+			border-top: 1px dashed #ddd; /* Tạo một đường gạch nhẹ để phân tách */
+			padding-top: 10px;
+		}
+		.wpsila-hint strong {
+			color: #d63638; /* Làm nổi bật chữ Mẹo bằng màu đỏ nhạt */
+		}
+	</style>
     <?php
 }
 
@@ -279,4 +297,17 @@ function wpsila_scfp_execute_purge_everything($zone_id, $token) {
 			'message' => $specific_error
 		];
 	}
+}
+
+// Thêm link "Cài đặt" trực tiếp tại trang danh sách Plugin
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wpsila_scfp_add_settings_link');
+
+function wpsila_scfp_add_settings_link($links) {
+    // Tạo đường dẫn đến trang cấu hình
+    $settings_link = '<a href="options-general.php?page=simple-cafe-purge">' . __('Cài đặt') . '</a>';
+    
+    // Thêm link này vào đầu mảng các liên kết của plugin
+    array_unshift($links, $settings_link);
+    
+    return $links;
 }
