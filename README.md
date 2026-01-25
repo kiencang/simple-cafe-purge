@@ -54,7 +54,7 @@
 
 * **Tác giả:** Nguyễn Đức Anh (wpsila)
 * **Website:** [wpsila.com](https://wpsila.com)
-* **Phiên bản:** 1.12
+* **Phiên bản:** 1.12.3
 * **Giấy phép:** GPLv2.
 
 ---
