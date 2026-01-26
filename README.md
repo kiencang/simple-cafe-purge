@@ -15,6 +15,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
     * *Các URL được hỗ trợ:* Bài viết gốc, Trang chủ, RSS Feed, Chuyên mục (Categories) và Thẻ (Tags).
 * **Xử lý bất đồng bộ (Non-blocking):** Gửi yêu cầu xóa cache ngầm bên dưới. Website của bạn sẽ không bị chậm hay treo khi đang lưu bài viết.
 * **Nút "Purge Everything" thủ công:** Xóa sạch toàn bộ cache của toàn bộ website chỉ với một cú click khi bạn có những thay đổi lớn về giao diện.
+* **Nút Purge Cloudflare Cache This URL:** Để xóa cache một URL cụ thể trên website.
 * **An toàn & Bảo mật:**
     * Sử dụng Cloudflare API Token (chuẩn bảo mật mới nhất).
     * Kiểm tra quyền truy cập và chống giả mạo request (Nonce verification).
