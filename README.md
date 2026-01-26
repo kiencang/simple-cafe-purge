@@ -55,7 +55,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 
 * **Tác giả:** Nguyễn Đức Anh (wpsila)
 * **Website:** [wpsila.com](https://wpsila.com)
-* **Phiên bản:** 1.12.3
+* **Phiên bản:** 1.13.2
 * **Giấy phép:** GPLv2.
 
 ---
