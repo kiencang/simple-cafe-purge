@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.13.1
+ * Version: 1.13.2
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://wpsila.com
  */
@@ -239,11 +239,11 @@ function wpsila_scfp_admin_bar_node($wp_admin_bar) {
     if (!get_option('wpsila_scfp_zone_id')) return;
 
     // Tạo link có kèm nonce để bảo mật
-    $href = wp_nonce_url(add_query_arg('wpsila_action', 'purge_current'), 'wpsila_purge_current_verify');
+    $href = wp_nonce_url(add_query_arg('wpsila_action', 'purge_current'), 'wpsila_scfp_purge_current_verify');
 
     $wp_admin_bar->add_node([
         'id'    => 'wpsila_purge_current',
-        'title' => '<span class="ab-icon dashicons dashicons-cloud"></span> Purge This URL',
+        'title' => '<span class="ab-icon dashicons dashicons-cloud"></span> Purge Cloudflare Cache This URL',
         'href'  => $href,
         'meta'  => ['title' => 'Xóa cache Cloudflare cho trang bạn đang xem']
     ]);
@@ -300,7 +300,7 @@ function wpsila_scfp_purge_success_script() {
             if(history.replaceState) history.replaceState(null, null, window.location.href.split("?")[0]);
             // Thông báo đơn giản (hoặc bạn có thể dùng alert nếu muốn)
             console.log('🚀 Simple Cafe Purge: Đã xóa cache trang này!');
-            alert('✅ Đã xóa cache Cloudflare trang này thành công!');
+            alert('✅ Đã xóa cache Cloudflare cho URL này thành công!');
         </script>
         <?php
     }
