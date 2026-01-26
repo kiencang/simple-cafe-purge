@@ -1,4 +1,4 @@
-# ☕ Simple Cafe Purge [Vẫn đang trong giai đoạn thử nghiệm]
+# ☕ Simple Cafe Purge
 
 **Simple Cafe Purge** là một plugin WordPress siêu nhẹ (lightweight), được thiết kế để giải quyết vấn đề đồng bộ bộ nhớ đệm (cache) giữa website và Cloudflare. Plugin này đặc biệt tối ưu cho các hệ thống Blog và Trang tin tức.
 
