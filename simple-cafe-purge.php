@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.13.2
+ * Version: 1.13.3
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://wpsila.com
  */
@@ -262,28 +262,33 @@ function wpsila_scfp_process_admin_bar_purge() {
         $api_token = get_option('wpsila_scfp_api_token');
         
         if ($zone_id && $api_token) {
-            // 1. Xác định URL hiện tại (loại bỏ các tham số query của plugin)
-			// Cách chuẩn nhất để lấy Full URL hiện tại và xóa tham số
-			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . remove_query_arg( ['wpsila_action', '_wpnonce'] ) );
-			$current_clean_url = esc_url_raw( $current_url );
+            // 1. Lấy đường dẫn thô (Domain + Path) từ Server
+            $raw_path = $_SERVER['HTTP_HOST'] . remove_query_arg(['wpsila_action', '_wpnonce']);
             
-            // 2. Tạo biến thể có và không có dấu gạch chéo (/) để đảm bảo xóa sạch
-			// Dùng lại hàm mở rộng biến thể
-			$urls_to_purge = wpsila_expand_urls([$current_clean_url]);
+            // 2. Tạo thủ công cả 2 biến thể HTTP và HTTPS
+            // Chỉ làm việc này ở đây để xử lý lỗi SSL/Proxy cho nút bấm tay
+            $urls_to_purge = [
+                'http://' . $raw_path,
+                'https://' . $raw_path
+            ];
 
-            // 3. Gửi request trực tiếp (Blocking = true để đợi kết quả)
+            // 3. Mở rộng thêm biến thể có/không dấu gạch chéo
+            // Tổng cộng sẽ có tối đa 4 URLs (Http có/không /, Https có/không /)
+            $urls = wpsila_expand_urls($urls_to_purge);
+
+            // 4. Gửi request
             $response = wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
-                'body'    => json_encode(['files' => $urls_to_purge]),
+                'body'    => json_encode(['files' => $urls]), 
                 'headers' => [
                     'Authorization' => 'Bearer ' . $api_token, 
                     'Content-Type'  => 'application/json'
                 ],
                 'method'   => 'POST', 
-                'blocking' => true, // QUAN TRỌNG: Đợi Cloudflare xóa xong mới redirect
-                'timeout'  => 5,
+                'blocking' => true, 
+                'timeout'  => 10,
             ]);
             
-            // 4. Redirect về trang cũ kèm thông báo thành công
+            // 5. Redirect
             wp_redirect(add_query_arg('wpsila_purged', '1', remove_query_arg(['wpsila_action', '_wpnonce'])));
             exit;
         }
