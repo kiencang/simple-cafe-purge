@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.13.3
+ * Version: 1.13.4
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://wpsila.com
  */
@@ -224,6 +224,19 @@ add_filter('plugin_action_links_' . plugin_basename(__FILE__), function($links) 
     array_unshift($links, '<a href="options-general.php?page=simple-cafe-purge">Cài đặt</a>');
     return $links;
 });
+
+// Thêm link "Hướng dẫn sử dụng" vào dòng thông tin plugin
+add_filter('plugin_row_meta', 'wpsila_scfp_add_plugin_meta_links', 10, 2);
+function wpsila_scfp_add_plugin_meta_links($links, $file) {
+    if (plugin_basename(__FILE__) === $file) {
+        $new_links = [
+            // Link hướng dẫn
+            'docs' => '<a href="https://blog.wpsila.com/rtd-cafe-va-plugin-simple-cafe-purge/" target="_blank" style="color: #d63638; font-weight: bold;">📚 Hướng dẫn sử dụng</a>',
+        ];
+        return array_merge($links, $new_links);
+    }
+    return $links;
+}
 
 // =========================================================================
 // 4. TÍNH NĂNG: NÚT "PURGE THIS URL" TRÊN ADMIN BAR
