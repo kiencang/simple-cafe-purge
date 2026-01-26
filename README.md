@@ -1,5 +1,7 @@
 # ☕ Simple Cafe Purge
 
+Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.13.2.zip
+
 **Simple Cafe Purge** là một plugin WordPress siêu nhẹ (lightweight), được thiết kế để giải quyết vấn đề đồng bộ bộ nhớ đệm (cache) giữa website và Cloudflare. Plugin này đặc biệt tối ưu cho các hệ thống Blog và Trang tin tức.
 
 Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bảo mật [rtd-cafe](https://rtd-cafe.wpsila.com/). Với plugin này bạn sẽ có 2 cải tiến quan trọng cho rtd-cafe:
