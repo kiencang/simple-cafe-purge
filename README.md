@@ -56,7 +56,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 ## 📄 Thông tin dự án
 
 * **Tác giả:** Nguyễn Đức Anh (wpsila)
-* **Website:** ([simple-cafe-purge.wpsila.com](https://simple-cafe-purge.wpsila.com/))
+* **Website:** [simple-cafe-purge.wpsila.com](https://simple-cafe-purge.wpsila.com/)
 * **Phiên bản:** 1.13.6
 * **Giấy phép:** GPLv2.
 
