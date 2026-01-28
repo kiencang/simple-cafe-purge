@@ -48,7 +48,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 ## ⚠️ Lưu ý sử dụng
 
 * **Đối tượng:** Plugin được thiết kế tối ưu nhất cho `post_type = 'post'` (tức là các dạng bài của blog, trang tin tức WordPress). 
-* **Giới hạn:** Mỗi lần cập nhật, plugin sẽ tự động lọc ra tối đa **50 URL** quan trọng nhất để gửi lên Cloudflare nhằm tránh quá tải và đảm bảo tốc độ phản hồi nhanh nhất.
+* **Giới hạn:** Mỗi lần cập nhật, plugin sẽ tự động lọc ra tối đa **90 URL** quan trọng nhất để gửi lên Cloudflare nhằm tránh quá tải và đảm bảo tốc độ phản hồi nhanh nhất (Cloudflare cho phép tối đa 100 URL một lần gửi API purge).
 * **Gỡ cài đặt:** Khi bạn xóa plugin, toàn bộ cấu hình API sẽ được tự động dọn dẹp khỏi cơ sở dữ liệu để giữ website luôn sạch sẽ.
 
 ---
