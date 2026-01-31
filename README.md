@@ -65,7 +65,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 ---
 
 ## ⚖️ Tuyên bố từ chối trách nhiệm (Disclaimer)
-Công cụ được cung cấp "nguyên trạng" (as-is). Tác giả không chịu trách nhiệm cho bất kỳ thiệt hại nào về dữ liệu hoặc gián đoạn dịch vụ khi sử dụng công cụ này. Vui lòng xem chi tiết tại [DISCLAIMERS.md](DISCLAIMERS.md).
+Công cụ được cung cấp "nguyên trạng" (as-is). Tác giả không chịu trách nhiệm cho bất kỳ thiệt hại nào về dữ liệu hoặc gián đoạn dịch vụ khi sử dụng công cụ này. Vui lòng xem chi tiết tại [DISCLAIMER.md](DISCLAIMER.md).
 
 ---
 *Cảm ơn bạn đã sử dụng giải pháp từ wpsila! Nếu thấy hữu ích, hãy giới thiệu cho bạn bè cùng sử dụng.*
