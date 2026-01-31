@@ -2,8 +2,6 @@
 
 Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.13.6.zip
 
-Người dùng vui lòng đọc Tuyên bố từ chối trách nhiệm trước khi sử dụng: https://github.com/kiencang/simple-cafe-purge/blob/main/DISCLAIMER.md
-
 ---
 
 **Simple Cafe Purge** là một plugin WordPress siêu nhẹ (lightweight), được thiết kế để giải quyết vấn đề đồng bộ bộ nhớ đệm (cache) giữa website và Cloudflare. Plugin này đặc biệt tối ưu cho các hệ thống Blog và Trang tin tức.
@@ -63,6 +61,11 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 * **Website:** [simple-cafe-purge.wpsila.com](https://simple-cafe-purge.wpsila.com/)
 * **Phiên bản:** 1.13.6
 * **Giấy phép:** GPLv2.
+
+---
+
+## ⚖️ Tuyên bố từ chối trách nhiệm (Disclaimer)
+Công cụ được cung cấp "nguyên trạng" (as-is). Tác giả không chịu trách nhiệm cho bất kỳ thiệt hại nào về dữ liệu hoặc gián đoạn dịch vụ khi sử dụng công cụ này. Vui lòng xem chi tiết tại [DISCLAIMERS.md](DISCLAIMERS.md).
 
 ---
 *Cảm ơn bạn đã sử dụng giải pháp từ wpsila! Nếu thấy hữu ích, hãy giới thiệu cho bạn bè cùng sử dụng.*
