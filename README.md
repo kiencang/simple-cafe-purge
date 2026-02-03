@@ -1,6 +1,6 @@
 # ☕ Simple Cafe Purge
 
-Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.13.6.zip
+Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.13.7.zip
 
 ---
 
@@ -59,7 +59,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 
 * **Tác giả:** Nguyễn Đức Anh (wpsila)
 * **Website:** [simple-cafe-purge.wpsila.com](https://simple-cafe-purge.wpsila.com/)
-* **Phiên bản:** 1.13.6
+* **Phiên bản:** 1.13.7
 * **Giấy phép:** GPLv2.
 
 ---
