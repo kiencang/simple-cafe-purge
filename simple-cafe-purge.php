@@ -2,11 +2,12 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.13.6
+ * Version: 1.13.7
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://simple-cafe-purge.wpsila.com
  */
 
+// Đảm bảo truy cập hợp lệ, ngăn truy cập trực tiếp file php của plugin
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -15,54 +16,69 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 1. GIAO DIỆN ADMIN & XỬ LÝ FORM
 // =========================================================================
 
+// Tạo ra menu bên trái ở mục cài đặt
 add_action('admin_menu', 'wpsila_scfp_add_admin_menu');
+
+// Cấu hình cho menu
 function wpsila_scfp_add_admin_menu() {
     add_options_page(
-        'Simple Cafe Purge', 
-        'Simple Cafe Purge', 
-        'manage_options', 
-        'simple-cafe-purge', 
-        'wpsila_scfp_options_page'
+        'Simple Cafe Purge', // Tiêu đề trên trình duyệt
+        'Simple Cafe Purge', // Tiêu đề ở mục cài đặt
+        'manage_options', // Phân quyền, chỉ có admin được quyền dùng
+        'simple-cafe-purge', // Slug đường dẫn của plugin
+        'wpsila_scfp_options_page' // Gọi hàm xử lý, tạo form nhập
     );
 }
 
 function wpsila_scfp_options_page() {
 	// 1. CHẶN ĐẦU: Kiểm tra quyền hạn ngay lập tức
-    if (!current_user_can('manage_options')) {
+    if (!current_user_can('manage_options')) { // Người dùng không có quyền admin sẽ bị chặn ngay lập tức
         wp_die(__('Bạn không có quyền truy cập trang này.'));
     }
 	
     // --- XỬ LÝ LƯU CẤU HÌNH ---
+	// isset($_POST['wpsila_scfp_save_settings']) dùng để kiểm tra người dùng có nhấn Lưu cấu hình hay không?
+	// check_admin_referer('wpsila_scfp_save_settings_verify') dùng để xác thực thao tác đó đúng là đến từ khu vực nhập form.
+	// Nó ngăn ngừa, phòng thủ việc admin bị lừa click vào một link độc hại làm thay đổi Token.
     if (isset($_POST['wpsila_scfp_save_settings']) && check_admin_referer('wpsila_scfp_save_settings_verify')) {
-        $input_zone_id = sanitize_text_field($_POST['wpsila_scfp_zone_id']);
-        $input_api_token = sanitize_text_field($_POST['wpsila_scfp_api_token']);
+        $input_zone_id = sanitize_text_field($_POST['wpsila_scfp_zone_id']); // Làm sạch dữ liệu đầu vào
+        $input_api_token = sanitize_text_field($_POST['wpsila_scfp_api_token']); // Tương tự nhưng cho phần Token
 
-        if (empty($input_zone_id) || empty($input_api_token)) {
-            echo '<div class="notice notice-error is-dismissible"><p>❌ <strong>Lỗi:</strong> Không được để trống Zone ID và API Token!</p></div>';
+        if (empty($input_zone_id) || empty($input_api_token)) { // Kiểm tra trường dữ liệu nhập vào bị thiếu
+			// notice notice-error is-dismissible là các class sẵn có của WP, để chúng ta không phải CSS nhiều và đảm bảo giao diện không bị lệch tông
+            echo '<div class="notice notice-error is-dismissible"><p>❌ <strong>Lỗi:</strong> Không được để trống Zone ID và API Token!</p></div>'; // Thông báo lỗi
         } else {
-            update_option('wpsila_scfp_zone_id', $input_zone_id);
-            update_option('wpsila_scfp_api_token', $input_api_token);
-            echo '<div class="notice notice-success is-dismissible"><p>✅ Đã lưu cấu hình thành công!</p></div>';
+			// update_option: Hàm chuẩn của WordPress để lưu dữ liệu vào bảng wp_options. Nếu dữ liệu chưa có thì nó tạo mới, có rồi thì cập nhật
+            update_option('wpsila_scfp_zone_id', $input_zone_id); // Nếu không thiếu thì lưu lại
+            update_option('wpsila_scfp_api_token', $input_api_token); // Tương tự cho Token
+			// Tương tự notice notice-success is-dismissible cũng là các class CSS sẵn có của WP
+            echo '<div class="notice notice-success is-dismissible"><p>✅ Đã lưu cấu hình thành công!</p></div>'; // Thông báo lưu thành công
         }
     }
 
     // --- XỬ LÝ PURGE EVERYTHING ---
+	// isset($_POST['wpsila_scfp_purge_everything']) dùng để kiểm tra người dùng có nhấn nút Xóa toàn bộ cache hay không?
+	// check_admin_referer('wpsila_scfp_purge_all_verify') dùng để kiểm tra xem có đúng là thao tác xuất phát từ form hay không?
     if (isset($_POST['wpsila_scfp_purge_everything']) && check_admin_referer('wpsila_scfp_purge_all_verify')) {
-        $zone_id = get_option('wpsila_scfp_zone_id');
-        $api_token = get_option('wpsila_scfp_api_token');
+        $zone_id = get_option('wpsila_scfp_zone_id'); // Lấy thông tin Zone ID từ CSDL
+        $api_token = get_option('wpsila_scfp_api_token'); // Lấy thông tin API Token từ CSDL
         
-        if ($zone_id && $api_token) {
-            $result = wpsila_scfp_execute_purge_everything($zone_id, $api_token);
+        if ($zone_id && $api_token) { // Nếu cả hai đều tồn tại
+            $result = wpsila_scfp_execute_purge_everything($zone_id, $api_token); // Gọi hàm để xóa toàn bộ cache
             if ($result['success']) {
+				// Nếu thành công
                 echo '<div class="notice notice-success is-dismissible"><p>🚀 <strong>Thành công:</strong> Đã xóa toàn bộ cache website trên Cloudflare.</p></div>';
             } else {
+				// Khi có lỗi, hàm esc_html dùng để lọc văn bản thuần túy
                 echo '<div class="notice notice-error is-dismissible"><p>❌ <strong>Lỗi:</strong> ' . esc_html($result['message']) . '</p></div>';
             }
         } else {
+			// Nếu thiếu thông tin API Token hoặc Zone ID (thường là do chưa lưu cấu hình)
             echo '<div class="notice notice-warning is-dismissible"><p>⚠️ Vui lòng nhập thông tin API trước.</p></div>';
         }
     }
-
+	
+	// Lấy dữ liệu từ bộ nhớ ra, chuẩn bị sẵn sàng để điền vào form cho người dùng xem.
     $zone_id = get_option('wpsila_scfp_zone_id', '');
     $api_token = get_option('wpsila_scfp_api_token', '');
     ?>
@@ -81,19 +97,19 @@ function wpsila_scfp_options_page() {
     </style>
 
     <div class="wrap">
-        <h1>☕ Simple Cafe Purge v1.13.6</h1>
+        <h1>☕ Simple Cafe Purge v1.13.7</h1>
         <p>Plugin siêu nhẹ giúp đồng bộ cache giữa WordPress và hệ thống của Cloudflare.</p>
         <hr>
         
         <div class="wpsila-card">
             <h2>🛠️ Cấu hình API</h2>
             <form method="post" action="">
-                <?php wp_nonce_field('wpsila_scfp_save_settings_verify'); ?>
+                <?php wp_nonce_field('wpsila_scfp_save_settings_verify'); // Dùng để xác thực thao tác lưu ?>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Zone ID <span style="color:red">*</span></th>
                         <td>
-                            <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); ?>" class="regular-text wpsila-full-width" placeholder="Ví dụ: a1b2c3..." required />
+                            <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); // esc_attr dùng để làm sạch dữ liệu đầu ra khi hiển thị ?>" class="regular-text wpsila-full-width" placeholder="Ví dụ: a1b2c3..." required />
                         </td>
                     </tr>
                     <tr>
@@ -107,7 +123,7 @@ function wpsila_scfp_options_page() {
                         </td>
                     </tr>
                 </table>
-                <?php submit_button('Lưu cấu hình', 'primary', 'wpsila_scfp_save_settings'); ?>
+                <?php submit_button('Lưu cấu hình', 'primary', 'wpsila_scfp_save_settings'); // Nút submit và CSS nút Lưu cấu hình ?>
             </form>
         </div>
 
@@ -156,27 +172,35 @@ function wpsila_expand_urls($urls) {
     return array_values(array_unique($expanded));
 }
 
+// Kiểm tra trạng thái thay đổi của bài viết.
+// Ví dụ: từ "Nháp" -> "Công khai", hoặc từ "Công khai" -> "Thùng rác", hoặc "Công khai" -> "Công khai" khi bấm Cập nhật
+// 10: Độ ưu tiên (mặc định).
+// 3: Quan trọng! Báo cho WordPress biết hàm phía sau cần nhận 3 tham số.
 add_action('transition_post_status', 'wpsila_scfp_handle_post_transition', 10, 3);
 
+// Kiểm tra có nên xóa cache hay không?
 function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
-    if (wp_is_post_revision($post->ID) || wp_is_post_autosave($post->ID)) return;
-    if ($new_status !== 'publish' && $old_status !== 'publish') return;
+    if (wp_is_post_revision($post->ID) || wp_is_post_autosave($post->ID)) return; // Bỏ qua không xóa khi lưu tự động mỗi 60s
+    if ($new_status !== 'publish' && $old_status !== 'publish') return; // Bỏ qua không xóa cho các bài chưa xuất bản
     
     $zone_id = get_option('wpsila_scfp_zone_id');
     $api_token = get_option('wpsila_scfp_api_token');
-    if (!$zone_id || !$api_token) return;
-
-    $urls = [get_permalink($post->ID), home_url('/'), home_url()];
+    if (!$zone_id || !$api_token) return; // Nếu $zone_id và $api_token chưa có thì cũng không thao tác gì
+	
+	// Thu thập danh sách URL cần xóa
+    $urls = [get_permalink($post->ID), home_url('/'), home_url()]; // Đầu tiên là lấy link bài viết đó, trang chủ có dấu / và trang chủ không có dấu /
 
     if ($post->post_type === 'post') {
-        $urls[] = get_bloginfo('rss2_url');
+        $urls[] = get_bloginfo('rss2_url'); // Lấy link RSS Feed
         // Lấy link Categories & Tags
         foreach (['category', 'post_tag'] as $tax) {
             $terms = get_the_terms($post->ID, $tax);
-            if ($terms && !is_wp_error($terms)) {
+            if ($terms && !is_wp_error($terms)) { // is_wp_error là hàm phòng lỗi khi thao tác với database, lỗi thì cat hoặc tag cụ thể bị lỗi sẽ không được xử lý
                 foreach ($terms as $term) {
-                    $link = get_term_link($term);
-                    if ($link && !is_wp_error($link)) $urls[] = $link;
+                    $link = get_term_link($term); // Lấy link chuẩn cho cat & tag
+                    if ($link && !is_wp_error($link)) {
+						$urls[] = $link; // Bổ sung link vào danh sách cần xóa cache
+					}	
                 }
             }
         }
@@ -192,11 +216,12 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     wpsila_scfp_send_purge_request($zone_id, $api_token, $urls);
 }
 
-
 // =========================================================================
 // 3. CÁC HÀM API
 // =========================================================================
 
+// Hàm xóa cache các URL.
+// 'blocking' => false nghĩa là không cần chờ phản hồi từ Cloudflare => Để tránh làm chậm thao tác người dùng.
 function wpsila_scfp_send_purge_request($zone_id, $token, $urls) {
     wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
         'body' => json_encode(['files' => $urls]),
@@ -205,6 +230,9 @@ function wpsila_scfp_send_purge_request($zone_id, $token, $urls) {
     ]);
 }
 
+// Hàm xóa cache mọi thứ trên website
+// 'blocking' => true nghĩa là chờ phản hồi từ Cloudflare. Thao tác xóa cache chủ động này thì nên chờ phản hồi.
+// Ngoài ra nó có tác dụng là xác thực chính xác xem Zone ID và API Token đã thực sự kết nối chưa.
 function wpsila_scfp_execute_purge_everything($zone_id, $token) {
     $response = wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
         'body' => json_encode(['purge_everything' => true]),
@@ -219,7 +247,7 @@ function wpsila_scfp_execute_purge_everything($zone_id, $token) {
     return ['success' => false, 'message' => $body['errors'][0]['message'] ?? 'Lỗi không xác định'];
 }
 
-// Link Cài đặt nhanh
+// Link Cài đặt vào phần thông tin cho plugin
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), function($links) {
     array_unshift($links, '<a href="options-general.php?page=simple-cafe-purge">Cài đặt</a>');
     return $links;
@@ -243,7 +271,7 @@ function wpsila_scfp_add_plugin_meta_links($links, $file) {
 // =========================================================================
 
 // Thêm nút vào Admin Bar (Chỉ hiển thị ngoài Frontend và với Admin)
-add_action('admin_bar_menu', 'wpsila_scfp_admin_bar_node', 99);
+add_action('admin_bar_menu', 'wpsila_scfp_admin_bar_node', 99); // Số 99 nghĩa là vẽ menu này cuối cùng để tránh cho nó tranh chấp với các menu khác
 function wpsila_scfp_admin_bar_node($wp_admin_bar) {
     // Chỉ hiện cho Admin và khi đang xem ngoài giao diện (Frontend)
     if (!current_user_can('manage_options') || is_admin()) return;
@@ -252,6 +280,8 @@ function wpsila_scfp_admin_bar_node($wp_admin_bar) {
     if (!get_option('wpsila_scfp_zone_id')) return;
 
     // Tạo link có kèm nonce để bảo mật
+	// add_query_arg('wpsila_action', 'purge_current'): Thêm tham số vào URL hiện tại. Ví dụ trang đang xem là abc.com/bai-viet, link nút bấm sẽ là abc.com/bai-viet?wpsila_action=purge_current.
+	// wp_nonce_url(..., '...'): Rất quan trọng. Nó thêm một mã bảo mật _wpnonce vào link. Link cuối cùng sẽ kiểu như: ...?wpsila_action=purge_current&_wpnonce=a1b2c3d4
     $href = wp_nonce_url(add_query_arg('wpsila_action', 'purge_current'), 'wpsila_scfp_purge_current_verify');
 
     $wp_admin_bar->add_node([
@@ -302,6 +332,8 @@ function wpsila_scfp_process_admin_bar_purge() {
             ]);
             
             // 5. Redirect
+			// Sau khi xóa xong, web sẽ tự tải lại (Reload).
+			// Nó xóa bỏ các tham số action, nonce đi và thay bằng wpsila_purged=1. Đây là tín hiệu để bước 3 hoạt động.
             wp_redirect(add_query_arg('wpsila_purged', '1', remove_query_arg(['wpsila_action', '_wpnonce'])));
             exit;
         }
@@ -317,8 +349,8 @@ function wpsila_scfp_purge_success_script() {
             // Xóa tham số query trên thanh địa chỉ cho đẹp
             if(history.replaceState) history.replaceState(null, null, window.location.href.split("?")[0]);
             // Thông báo đơn giản (hoặc bạn có thể dùng alert nếu muốn)
-            console.log('🚀 Simple Cafe Purge: Đã xóa cache trang này!');
-            alert('✅ Đã xóa cache Cloudflare cho URL này thành công!');
+            console.log('🚀 Simple Cafe Purge: Đã xóa cache trang này!'); // Ghi vào log để debug nếu cần
+            alert('✅ Đã xóa cache Cloudflare cho URL này thành công!'); // Báo cho người dùng
         </script>
         <?php
     }
