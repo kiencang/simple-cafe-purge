@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.14.1
+ * Version: 1.14.2
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://simple-cafe-purge.wpsila.com
  */
@@ -49,7 +49,7 @@ function wpsila_scfp_add_admin_menu() {
 function wpsila_scfp_options_page() {
 	// 1. CHẶN ĐẦU: Kiểm tra quyền hạn ngay lập tức
     if (!current_user_can('manage_options')) { // Người dùng không có quyền admin sẽ bị chặn ngay lập tức
-        wp_die(__('Bạn không có quyền truy cập trang này.'));
+        wp_die(__('Bạn không có quyền truy cập trang này.')); // Thông báo thiếu quyền
     }
 	
 	// --- XỬ LÝ PURGE CUSTOM URLS (Xóa theo link tùy chọn) ---
@@ -60,17 +60,17 @@ function wpsila_scfp_options_page() {
         $urls_to_purge = array_filter(array_map('trim', explode("\n", $raw_urls)));
         
         if (!empty($urls_to_purge)) { // Nếu danh sách đó không rỗng
-            $zone_id = get_option('wpsila_scfp_zone_id');
-            $api_token = get_option('wpsila_scfp_api_token');
+            $zone_id = get_option('wpsila_scfp_zone_id'); // Lấy thông tin Zone ID
+            $api_token = get_option('wpsila_scfp_api_token'); // Lấy thông tin API Token
             
-            if ($zone_id && $api_token) {
+            if ($zone_id && $api_token) { // Nếu đã có Zone ID & API Token
                 // Gửi request blocking=true để lấy kết quả báo cáo cho người dùng
                 $response = wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
                     'body'    => json_encode(['files' => array_values($urls_to_purge)]),
                     'headers' => ['Authorization' => 'Bearer ' . $api_token, 'Content-Type' => 'application/json'],
-                    'method'  => 'POST', 
+                    'method'  => 'POST', // Phương thức POST
                     'blocking' => true, // Chờ phản hồi để báo lỗi/thành công
-                    'timeout' => 15,
+                    'timeout' => 15, // Thời gian chờ phản hồi tối đa
                 ]);
 
                 if (is_wp_error($response)) {
@@ -78,6 +78,7 @@ function wpsila_scfp_options_page() {
                 } else {
                     $body = json_decode(wp_remote_retrieve_body($response), true);
                     if (wp_remote_retrieve_response_code($response) === 200 && !empty($body['success'])) {
+						// Thông báo xóa thành công
                          echo '<div class="notice notice-success is-dismissible"><p>✅ <strong>Thành công:</strong> Đã gửi lệnh xóa ' . count($urls_to_purge) . ' URL.</p></div>';
                     } else {
                          // Cloudflare thường trả về lỗi nếu URL không thuộc Zone ID này
@@ -86,9 +87,11 @@ function wpsila_scfp_options_page() {
                     }
                 }
             } else {
+				// Nếu chưa cấu hình Zone ID & Token
                 echo '<div class="notice notice-warning is-dismissible"><p>⚠️ Vui lòng cấu hình API trước.</p></div>';
             }
         } else {
+			// Nếu chưa nhập URL cần purge
              echo '<div class="notice notice-warning is-dismissible"><p>⚠️ Bạn chưa nhập URL nào cả.</p></div>';
         }
     }	
@@ -144,7 +147,7 @@ function wpsila_scfp_options_page() {
         .wpsila-card { background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); max-width: 800px; margin-bottom: 20px; }
         .wpsila-card.is-danger { border-left: 4px solid #d63638; }
         .wpsila-full-width { width: 100%; }
-        .wpsila-pwd-wrapper { position: relative; max-width: 100%; }
+        .wpsila-pwd-wrapper, .wpsila-zone-wrapper { position: relative; max-width: 100%; }
         .wpsila-pwd-input { width: 100%; padding-right: 40px; }
         .wpsila-eye-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #50575e; }
         .wpsila-btn-purge { font-weight: bold !important; border: 1px solid #d63638 !important; padding: 5px 15px !important; background: #fbeaea !important; color: #d63638 !important; transition: all 0.2s; cursor: pointer; }
@@ -154,7 +157,7 @@ function wpsila_scfp_options_page() {
     </style>
 
     <div class="wrap">
-        <h1>☕ Simple Cafe Purge v1.14.1</h1>
+        <h1>☕ Simple Cafe Purge v1.14.2</h1>
         <p>Plugin siêu nhẹ giúp đồng bộ cache giữa WordPress và hệ thống của Cloudflare.</p>
         <hr>
         
@@ -166,8 +169,11 @@ function wpsila_scfp_options_page() {
                     <tr>
                         <th scope="row">Zone ID <span style="color:red">*</span></th>
                         <td>
-                            <input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); // esc_attr dùng để làm sạch dữ liệu đầu ra khi hiển thị ?>" class="regular-text wpsila-full-width" placeholder="Ví dụ: a1b2c3..." required />
-                        </td>
+							<div class="wpsila-zone-wrapper">
+								<input type="text" name="wpsila_scfp_zone_id" value="<?php echo esc_attr($zone_id); // esc_attr dùng để làm sạch dữ liệu đầu ra khi hiển thị ?>" class="regular-text wpsila-full-width" placeholder="Ví dụ: a1b2c3..." required />
+							</div>
+							<p class="description">Mỗi tên miền có Zone ID riêng, copy chính xác Zone ID của tên miền.</p>
+						</td>
                     </tr>
                     <tr>
                         <th scope="row">API Token <span style="color:red">*</span></th>
@@ -267,8 +273,8 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     if (wp_is_post_revision($post->ID) || wp_is_post_autosave($post->ID)) return; // Bỏ qua không xóa khi lưu tự động mỗi 60s
     if ($new_status !== 'publish' && $old_status !== 'publish') return; // Bỏ qua không xóa cho các bài chưa xuất bản
     
-    $zone_id = get_option('wpsila_scfp_zone_id');
-    $api_token = get_option('wpsila_scfp_api_token');
+    $zone_id = get_option('wpsila_scfp_zone_id'); // Lấy Zone ID
+    $api_token = get_option('wpsila_scfp_api_token'); // Lấy API Token
     if (!$zone_id || !$api_token) return; // Nếu $zone_id và $api_token chưa có thì cũng không thao tác gì
 	
 	// Thu thập danh sách URL cần xóa
@@ -392,7 +398,7 @@ function wpsila_scfp_admin_bar_node($wp_admin_bar) {
 
     $wp_admin_bar->add_node([
         'id'    => 'wpsila_purge_current',
-        'title' => '<span class="ab-icon dashicons dashicons-cloud"></span> Purge Cloudflare Cache This URL',
+        'title' => '<span class="ab-icon dashicons dashicons-cloud"></span> Purge This URL',
         'href'  => $href,
         'meta'  => ['title' => 'Xóa cache Cloudflare cho trang bạn đang xem']
     ]);
