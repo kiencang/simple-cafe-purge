@@ -18,8 +18,9 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 * **Tự động hóa thông minh (Auto-Purge):** Tự động nhận diện và xóa cache các đường dẫn liên quan ngay khi bạn Đăng mới, Cập nhật hoặc Xóa bài viết.
     * *Các URL được hỗ trợ:* Bài viết gốc, Trang chủ, RSS Feed, Chuyên mục (Categories) và Thẻ (Tags).
 * **Xử lý bất đồng bộ (Non-blocking):** Gửi yêu cầu xóa cache ngầm bên dưới. Website của bạn sẽ không bị chậm hay treo khi đang lưu bài viết.
-* **Nút "Purge Everything" thủ công:** Xóa sạch toàn bộ cache của toàn bộ website chỉ với một cú click khi bạn có những thay đổi lớn về giao diện.
-* **Nút Purge Cloudflare Cache This URL:** Để xóa cache một URL cụ thể trên website.
+* **Nút 'Xóa sạch cache ngay lập tức':** Xóa sạch toàn bộ cache của toàn bộ website chỉ với một cú click khi bạn có những thay đổi lớn về giao diện.
+* **Nút 'Purge This URL':** Để xóa cache một URL cụ thể trên website.
+* **Nút 'Xóa cache các URL này':** Để xóa cache nhiều URL cụ thể trên website (ví dụ link ảnh, file pdf, mp3, v.v...).
 * **An toàn & Bảo mật:**
     * Sử dụng Cloudflare API Token (chuẩn bảo mật mới nhất).
     * Kiểm tra quyền truy cập và chống giả mạo request (Nonce verification).
