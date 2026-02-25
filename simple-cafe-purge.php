@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.14.3
+ * Version: 1.14.4
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://simple-cafe-purge.wpsila.com
  */
@@ -157,7 +157,7 @@ function wpsila_scfp_options_page() {
     </style>
 
     <div class="wrap">
-        <h1>☕ Simple Cafe Purge v1.14.2</h1>
+        <h1>☕ Simple Cafe Purge v1.14.4</h1>
         <p>Plugin siêu nhẹ giúp đồng bộ cache giữa WordPress và hệ thống của Cloudflare.</p>
         <hr>
         
