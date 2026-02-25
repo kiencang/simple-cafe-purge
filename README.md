@@ -1,6 +1,6 @@
 # ☕ Simple Cafe Purge
 
-Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.14.3.zip
+Tải file cài đặt cho WordPress: https://github.com/kiencang/simple-cafe-purge/archive/refs/tags/1.14.4.zip
 
 ---
 
@@ -51,7 +51,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 ## ⚠️ Lưu ý sử dụng
 
 * **Đối tượng:** Plugin được thiết kế tối ưu nhất cho `post_type = 'post'` (tức là các dạng bài của blog, trang tin tức WordPress). 
-* **Giới hạn:** Mỗi lần cập nhật, plugin sẽ tự động lọc ra tối đa **90 URL** quan trọng nhất để gửi lên Cloudflare nhằm tránh quá tải và đảm bảo tốc độ phản hồi nhanh nhất (Cloudflare cho phép tối đa 100 URL một lần gửi API purge).
+* **Giới hạn:** Mỗi lần cập nhật, plugin sẽ tự động lọc ra tối đa **200 URL** quan trọng nhất để gửi lên Cloudflare nhằm tránh quá tải (được chia làm 4 gói, mỗi gói 50 URL) và đảm bảo tốc độ phản hồi nhanh nhất (Cloudflare cho phép tối đa 100 URL một lần gửi API purge).
 * **Gỡ cài đặt:** Khi bạn xóa plugin, toàn bộ cấu hình API sẽ được tự động dọn dẹp khỏi cơ sở dữ liệu để giữ website luôn sạch sẽ.
 
 ---
@@ -60,7 +60,7 @@ Sản phẩm này hỗ trợ hoàn hảo cho công cụ tối ưu cache và bả
 
 * **Tác giả:** Nguyễn Đức Anh (wpsila)
 * **Website:** [simple-cafe-purge.wpsila.com](https://simple-cafe-purge.wpsila.com/)
-* **Phiên bản:** 1.14.3
+* **Phiên bản:** 1.14.4
 * **Giấy phép:** GPLv2.
 
 ---
