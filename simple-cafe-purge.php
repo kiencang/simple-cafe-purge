@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.14.4
+ * Version: 1.14.5
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://simple-cafe-purge.wpsila.com
  */
@@ -12,6 +12,13 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+// --------------------------------------------------------------------------------------------------------------------------------
+
+//+++
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Thông tin phiên bản của plugin
+define( 'WPSILA_SCFP_VERSION', '1.14.5' );
 // --------------------------------------------------------------------------------------------------------------------------------
 
 //+++
@@ -66,9 +73,9 @@ function wpsila_scfp_options_page() {
             if ($zone_id && $api_token) { // Nếu đã có Zone ID & API Token
                 // Gửi request blocking=true để lấy kết quả báo cáo cho người dùng
                 $response = wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
-                    'body'    => json_encode(['files' => array_values($urls_to_purge)]),
+                    'body' => json_encode(['files' => array_values($urls_to_purge)]),
                     'headers' => ['Authorization' => 'Bearer ' . $api_token, 'Content-Type' => 'application/json'],
-                    'method'  => 'POST', // Phương thức POST
+                    'method' => 'POST', // Phương thức POST
                     'blocking' => true, // Chờ phản hồi để báo lỗi/thành công
                     'timeout' => 15, // Thời gian chờ phản hồi tối đa
                 ]);
@@ -157,7 +164,7 @@ function wpsila_scfp_options_page() {
     </style>
 
     <div class="wrap">
-        <h1>☕ Simple Cafe Purge v1.14.4</h1>
+        <h1>☕ Simple Cafe Purge v<?php echo WPSILA_SCFP_VERSION; ?></h1>
         <p>Plugin siêu nhẹ giúp đồng bộ cache giữa WordPress và hệ thống của Cloudflare.</p>
         <hr>
         
@@ -249,8 +256,10 @@ function wpsila_expand_urls($urls) {
     $expanded = [];
     foreach ($urls as $url) {
         $expanded[] = $url;
+		
         // Thêm bản có / ở cuối
-        $expanded[] = trailingslashit($url); 
+        $expanded[] = trailingslashit($url);
+		
         // Thêm bản không có / ở cuối
         $expanded[] = untrailingslashit($url);
     }
@@ -298,10 +307,12 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
                         // Đảm bảo link luôn có dấu / ở cuối trước khi nối đuôi phân trang
                         $base_link = trailingslashit($link); 
                         
-                        // Bổ sung thêm Trang 2 và Trang 3 cho từng Category/Tag
-						// Mục đích là để bao quát nhiều trang phụ hơn, dự phòng trường hợp bài viết thuộc cate 2 hoặc cate 3
+                        // Bổ sung thêm Trang 2 và Trang 3, 4, 5 cho từng Category/Tag
+						// Mục đích là để bao quát nhiều trang phụ hơn, dự phòng trường hợp bài viết thuộc cate 2 hoặc cate 3, 4, 5
                         $urls[] = $base_link . 'page/2/';
-                        $urls[] = $base_link . 'page/3/';						
+                        $urls[] = $base_link . 'page/3/';
+						$urls[] = $base_link . 'page/4/';
+						$urls[] = $base_link . 'page/5/';						
 					}	
                 }
             }
@@ -393,7 +404,7 @@ function wpsila_scfp_add_plugin_meta_links($links, $file) {
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // =========================================================================
-// 4. TÍNH NĂNG: NÚT "PURGE THIS URL" TRÊN ADMIN BAR
+// 4. TÍNH NĂNG: NÚT "PURGE THIS URL" TRÊN ADMIN BAR // Dùng để xóa cache URL cụ thể
 // =========================================================================
 
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -403,8 +414,8 @@ function wpsila_scfp_admin_bar_node($wp_admin_bar) {
     // Chỉ hiện cho Admin và khi đang xem ngoài giao diện (Frontend)
     if (!current_user_can('manage_options') || is_admin()) return;
 
-    // Chỉ hiện khi đã cấu hình API
-    if (!get_option('wpsila_scfp_zone_id')) return;
+    // Chỉ hiện khi đã cấu hình API đầy đủ
+    if (!get_option('wpsila_scfp_zone_id') || !get_option('wpsila_scfp_api_token')) return;
 
     // Tạo link có kèm nonce để bảo mật
 	// add_query_arg('wpsila_action', 'purge_current'): Thêm tham số vào URL hiện tại. Ví dụ trang đang xem là abc.com/bai-viet, link nút bấm sẽ là abc.com/bai-viet?wpsila_action=purge_current.
@@ -412,10 +423,10 @@ function wpsila_scfp_admin_bar_node($wp_admin_bar) {
     $href = wp_nonce_url(add_query_arg('wpsila_action', 'purge_current'), 'wpsila_scfp_purge_current_verify');
 
     $wp_admin_bar->add_node([
-        'id'    => 'wpsila_purge_current',
+        'id' => 'wpsila_purge_current',
         'title' => '<span class="ab-icon dashicons dashicons-cloud"></span> Purge This URL',
-        'href'  => $href,
-        'meta'  => ['title' => 'Xóa cache Cloudflare cho trang bạn đang xem']
+        'href' => $href,
+        'meta' => ['title' => 'Xóa cache Cloudflare cho trang bạn đang xem']
     ]);
 }
 // --------------------------------------------------------------------------------------------------------------------------------
@@ -431,7 +442,8 @@ function wpsila_scfp_process_admin_bar_purge() {
         
         // Kiểm tra quyền lần nữa
         if (!current_user_can('manage_options')) return;
-
+		
+		// Lấy thông tin Zone ID & API Token
         $zone_id = get_option('wpsila_scfp_zone_id');
         $api_token = get_option('wpsila_scfp_api_token');
         
@@ -439,7 +451,7 @@ function wpsila_scfp_process_admin_bar_purge() {
             // 1. Lấy đường dẫn thô (Domain + Path) từ Server
             $raw_path = $_SERVER['HTTP_HOST'] . remove_query_arg(['wpsila_action', '_wpnonce']);
             
-            // 2. Tạo thủ công cả 2 biến thể HTTP và HTTPS
+            // 2. Tạo thủ công cả hai biến thể HTTP và HTTPS
             // Chỉ làm việc này ở đây để xử lý lỗi SSL/Proxy cho nút bấm tay
             $urls_to_purge = [
                 'http://' . $raw_path,
@@ -452,14 +464,14 @@ function wpsila_scfp_process_admin_bar_purge() {
 
             // 4. Gửi request
             $response = wp_remote_post("https://api.cloudflare.com/client/v4/zones/{$zone_id}/purge_cache", [
-                'body'    => json_encode(['files' => $urls]), 
+                'body' => json_encode(['files' => $urls]), 
                 'headers' => [
                     'Authorization' => 'Bearer ' . $api_token, 
-                    'Content-Type'  => 'application/json'
+                    'Content-Type' => 'application/json'
                 ],
-                'method'   => 'POST', 
+                'method' => 'POST', 
                 'blocking' => true, 
-                'timeout'  => 10,
+                'timeout' => 10,
             ]);
             
             // 5. Redirect
