@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Cafe Purge
  * Description: Giải pháp xóa cache Cloudflare siêu nhẹ cho Blog. Tự động xóa khi cập nhật bài viết và hỗ trợ nút "Purge Everything".
- * Version: 1.14.2
+ * Version: 1.14.3
  * Author: wpsila - Nguyễn Đức Anh
  * Author URI: https://simple-cafe-purge.wpsila.com
  */
@@ -193,7 +193,7 @@ function wpsila_scfp_options_page() {
 		<!-- BOX 2: XÓA THEO URL TÙY CHỌN -->
         <div class="wpsila-card">
             <h2>🎯 Xóa Cache Theo URL Tùy Chọn</h2>
-            <p>Nhập danh sách link cần xóa (ví dụ: ảnh, PDF, CSS, JS...). Mỗi link một dòng.</p>
+            <p>Nhập danh sách link cần xóa (ví dụ: ảnh, PDF, CSS, JS...). Mỗi link một dòng (tối đa 100 link).</p>
             
             <form method="post" action="">
                 <?php wp_nonce_field('wpsila_scfp_purge_custom_verify'); ?>
@@ -278,7 +278,12 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     if (!$zone_id || !$api_token) return; // Nếu $zone_id và $api_token chưa có thì cũng không thao tác gì
 	
 	// Thu thập danh sách URL cần xóa
-    $urls = [get_permalink($post->ID), home_url('/'), home_url()]; // Đầu tiên là lấy link bài viết đó, trang chủ có dấu / và trang chủ không có dấu /
+    $urls =[
+        get_permalink($post->ID), // Link bài viết hiện tại
+        home_url('/'),  // Trang chủ (Trang 1)
+        home_url('/page/2/'),  // Trang chủ (Trang 2)
+        home_url('/page/3/')  // Trang chủ (Trang 3)
+    ];
 
     if ($post->post_type === 'post') {
         $urls[] = get_bloginfo('rss2_url'); // Lấy link RSS Feed
@@ -290,6 +295,13 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
                     $link = get_term_link($term); // Lấy link chuẩn cho cat & tag
                     if ($link && !is_wp_error($link)) {
 						$urls[] = $link; // Bổ sung link vào danh sách cần xóa cache
+                        // Đảm bảo link luôn có dấu / ở cuối trước khi nối đuôi phân trang
+                        $base_link = trailingslashit($link); 
+                        
+                        // Bổ sung thêm Trang 2 và Trang 3 cho từng Category/Tag
+						// Mục đích là để bao quát nhiều trang phụ hơn, dự phòng trường hợp bài viết thuộc cate 2 hoặc cate 3
+                        $urls[] = $base_link . 'page/2/';
+                        $urls[] = $base_link . 'page/3/';						
 					}	
                 }
             }
@@ -299,11 +311,14 @@ function wpsila_scfp_handle_post_transition($new_status, $old_status, $post) {
     // 1. Mở rộng biến thể (có / và không /)
     $urls = wpsila_expand_urls($urls);
 
-    // 2. Cắt giới hạn (Cloudflare cho phép 100 URL, ta để 90 cho an toàn sau khi đã nhân bản)
-    $urls = array_slice($urls, 0, 90); 
-    
-    // 3. Gửi request
-    wpsila_scfp_send_purge_request($zone_id, $api_token, $urls);
+    // 2. Cắt giới hạn (Cloudflare cho phép 100 URL mỗi lần purge, ta để 50 cho an toàn sau khi đã nhân bản)
+	$urls = array_slice($urls, 0, 200); // Giữ max 200 để tránh spam
+	$url_chunks = array_chunk($urls, 50); // Chia nhỏ mỗi mảng tối đa 50 URLs
+
+	// 3. Gửi request
+	foreach ($url_chunks as $chunk) {
+		wpsila_scfp_send_purge_request($zone_id, $api_token, $chunk);
+	}
 }
 // --------------------------------------------------------------------------------------------------------------------------------
 
